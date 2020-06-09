@@ -12,7 +12,7 @@ $factory->define(App\Client::class, function (Faker $faker) {
         'name' => $faker->name,
         'email' => $faker->email,
         'phone' => $faker->phone,
-        'defaulter' => rand(0, 1),
+        'defaulter' => rand(0, 1)
     ];
 });
 

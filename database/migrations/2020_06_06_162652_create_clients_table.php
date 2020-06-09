@@ -21,8 +21,8 @@ class CreateClientsTable extends Migration
             $table->string('phone');
             $table->boolean('defaulter');
             $table->date('date_birth');
-            $table->char('sex')->nullable();//trocar char
-            $table->enum('marital_status', array_keys(\App\Client::MARITAL_STATUS))->nullable();//tirar enum
+            $table->string('sex')->nullable();
+            $table->string('marital_status', array_keys(\App\Client::MARITAL_STATUS))->nullable();
             $table->string('physical_disability');
             $table->string('company_name')->nullable();
             $table->string('client_type');
