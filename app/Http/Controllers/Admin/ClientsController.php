@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Client;
-use App\Http\Controllers\Controller;
+use App\Http\Requests\ClientRequest;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
-class ClientsController extends Controller
+class ClientsController extends Controller //Controller resource
 {
     /**
      * Display a listing of the resource.
@@ -15,7 +16,8 @@ class ClientsController extends Controller
      */
     public function index()
     {
-        $clients = \App\Client::all();
+        \Session::flash('chave','valor');
+        $clients = \App\Client::paginate(50);
         return view('admin.clients.index', compact('clients'));
     }
 
@@ -33,71 +35,71 @@ class ClientsController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ClientRequest $request)
     {
-        $data = $this->_validate($request);
+        $data = $request->only(array_keys($request->rules()));
         $data['defaulter'] = $request->has('defaulter');
         $data['client_type'] = Client::getClientType($request->client_type);
         Client::create($data);
-        return redirect()->route('clients.index');
+        //\Session::flash('message','Cliente cadastrado com sucesso');
+        return redirect()->route('clients.index')
+            ->with('message','Cliente cadastrado com sucesso');
     }
 
-    protected function _validate(Request $request)
-    {
-        $clientType = Client::getClientType($request->client_type);
-        $documentNumberType = $clientType == Client::TYPE_INDIVIDUAL ? 'cpf' : 'cnpj';
-        $client = $request->route('client');
-        if ($client instanceof Client){
-            $documentRule = "required|unique:clients,document_number,$client->id|document_number:$documentNumberType";
-        } else {
-            $documentRule = "required|unique:clients,document_number";
-        }
-    }
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  int $client
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Client $client)
     {
-        //
+        return view('admin.clients.show', compact('client'));
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param  int $client
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Client $client) //Route Model Binding Implicito
     {
-        //
+        $clientType = $client->client_type;
+        return view('admin.clients.edit', compact('client', 'clientType'));
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \Illuminate\Http\Request $request
+     * @param  int $client
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(ClientRequest $request, Client $client)
     {
-        //
+        $data = $request->only(array_keys($request->rules()));
+        $data['defaulter'] = $request->has('defaulter');
+        $client->fill($data);
+        $client->save();
+        //\Session::flash('message','Cliente alterado com sucesso');
+        return redirect()->route('clients.index')
+            ->with('message','Cliente alterado com sucesso');
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Client $client)
     {
-        //
+        $client->delete();
+        return redirect()->route('clients.index')
+            ->with('message','Cliente excluído com sucesso');
     }
 }
